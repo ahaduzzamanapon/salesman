@@ -723,7 +723,7 @@
     var sub_total       =(parseFloat(1)*parseFloat(sales_price)).toFixed(2);//Initial
     var remove_btn      ='<a class="fa fa-fw fa-trash-o text-red" style="cursor: pointer;font-size: 20px;" onclick="removerow('+rowcount+')" title="Delete Item?"></a>';
 
-    var str=' <tr id="row_'+rowcount+'" data-row="0" data-item-id='+item_id+'>';/*item id*/
+        var str=' <tr id="row_'+rowcount+'" data-row="0" data-item-id='+item_id+'>';/*item id*/
         str+='<td id="td_'+rowcount+'_0">'+ item_name +'</td>';/* td_0_0 item name*/
         // str+='<td id="td_'+rowcount+'_7">'+ pPrice +'</td>';/* td_0_7 item purchase price*/
         str+='<td id="td_'+rowcount+'_1">'+ stock +'</td>';/* td_0_1 item available qty*/
@@ -803,382 +803,357 @@
     }
     make_subtotal(item_id,rowcount);
   }
-//DECREMENT ITEM
-function decrement_qty(item_id,rowcount){
-  var item_qty=$("#item_qty_"+item_id).val();
-  if(item_qty<=1){
-    $("#item_qty_"+item_id).val(1);
-    return;
+  //DECREMENT ITEM
+  function decrement_qty(item_id,rowcount){
+    var item_qty=$("#item_qty_"+item_id).val();
+    if(item_qty<=1){
+      $("#item_qty_"+item_id).val(1);
+      return;
+    }
+    $("#item_qty_"+item_id).val(parseFloat(item_qty)-1);
+    make_subtotal(item_id,rowcount);
   }
-  $("#item_qty_"+item_id).val(parseFloat(item_qty)-1);
-  make_subtotal(item_id,rowcount);
-}
-//LEFT SIDE: IF ITEM QTY CHANGED MANUALLY
-function item_qty_input(item_id,rowcount){
-  var item_qty=$("#item_qty_"+item_id).val();
-  var stock=$("#td_"+rowcount+"_1").html();
-  if(stock==0){
-    toastr["warning"]("item Not Available in stock!");
-    //return;
+  //LEFT SIDE: IF ITEM QTY CHANGED MANUALLY
+  function item_qty_input(item_id,rowcount){
+    var item_qty=$("#item_qty_"+item_id).val();
+    var stock=$("#td_"+rowcount+"_1").html();
+    if(stock==0){
+      toastr["warning"]("item Not Available in stock!");
+      //return;
+    }
+    if(parseInt(item_qty)>parseInt(stock)){
+      $("#item_qty_"+item_id).val(stock);
+      toastr["warning"]("Oops! You have only "+stock+" items in Stock");
+    // return;
+    }
+    if(item_qty==0){
+      $("#item_qty_"+item_id).val(1);
+      toastr["warning"]("You must have atlease one Quantity");
+      //return;
+    }
+    make_subtotal(item_id,rowcount);
   }
-  if(parseInt(item_qty)>parseInt(stock)){
-    $("#item_qty_"+item_id).val(stock);
-    toastr["warning"]("Oops! You have only "+stock+" items in Stock");
-   // return;
-  }
-  if(item_qty==0){
-    $("#item_qty_"+item_id).val(1);
-    toastr["warning"]("You must have atlease one Quantity");
-    //return;
-  }
-  /*else{
-    $("#item_qty_"+item_id).val(1);
-    toastr["warning"]("You must have atlease one Quantity");
-    return;
-  }*/
-  make_subtotal(item_id,rowcount);
-}
 
-function zero_stock(){
-  toastr["error"]("Out of Stock!");
-  return;
-}
-//LEFT SIDE: REMOVE ROW
-function removerow(id){//id=Rowid
-    $("#row_"+id).remove();
-    failed.currentTime = 0;
-    failed.play();
+  function zero_stock(){
+    toastr["error"]("Out of Stock!");
+    return;
+  }
+  //LEFT SIDE: REMOVE ROW
+  function removerow(id){//id=Rowid
+      $("#row_"+id).remove();
+      failed.currentTime = 0;
+      failed.play();
+      final_total();
+  }
+
+  //MAKE SUBTOTAL
+  function make_subtotal(item_id,rowcount){
+    var sales_price     = $("#sales_price_"+rowcount).val();
+    var item_qty        = $("#item_qty_"+item_id).val();
+    // shahajahan 03-12-2024
+    var mrp_price       = parseFloat($("#td_"+rowcount+"_8").html()).toFixed(2);
+    var tot_mrp_price   = parseFloat(item_qty)*parseFloat(mrp_price).toFixed(2);
+    var dis_hide        = $("#dis_hide_"+item_id).val();
+    var profit_hide     = $("#profit_hide_"+item_id).val();
+    var dis_ahide       = (isNaN(parseFloat($("#item_adis_"+item_id).val().trim()))) ? 0 :parseFloat($("#item_adis_"+item_id).val().trim());
+
+    var total_discount  = parseFloat(item_qty * dis_hide).toFixed(2);
+    $("#td_"+rowcount+"_6").html(parseFloat(total_discount).toFixed(2));
+    $("#dis_row_"+item_id).val(total_discount);
+
+    var total_profit    = parseFloat(item_qty * profit_hide).toFixed(2);
+    $("#profit_row_"+item_id).val(total_profit);
+    // shahajahan 03-12-2024
+
+
+    //var gst_amt=(tot_sales_price * gst_per)/100;
+    var tot_sales_price = parseFloat(item_qty)*parseFloat(sales_price).toFixed(2);
+    var subtotal        = parseFloat(tot_sales_price).toFixed(2);
+
+    final_sales_price = (parseFloat(dis_ahide) + parseFloat(total_discount) + parseFloat(subtotal)).toFixed(2);
+
+    if (parseFloat(final_sales_price) > parseFloat(tot_mrp_price)) {
+      $("#item_adis_"+item_id).val(0);
+      return false;
+    } else {
+      $("#td_"+rowcount+"_4").html(parseFloat(subtotal).toFixed(2));
+    }
     final_total();
-}
-
-//MAKE SUBTOTAL
-function make_subtotal(item_id,rowcount){
-  var sales_price     = $("#sales_price_"+rowcount).val();
-  //var gst_per         =$("#tr_item_per_"+rowcount).val();
-  var item_qty        = $("#item_qty_"+item_id).val();
-  // shahajahan 03-12-2024
-  var mrp_price       = parseFloat($("#td_"+rowcount+"_8").html()).toFixed(2);
-  var tot_mrp_price   = parseFloat(item_qty)*parseFloat(mrp_price);
-  var dis_hide        = $("#dis_hide_"+item_id).val();
-  var profit_hide     = $("#profit_hide_"+item_id).val();
-  var dis_ahide       = (isNaN(parseFloat($("#item_adis_"+item_id).val().trim()))) ? 0 :parseFloat($("#item_adis_"+item_id).val().trim());
-
-  var total_discount  = parseFloat(item_qty * dis_hide);
-  $("#td_"+rowcount+"_6").html(parseFloat(total_discount).toFixed(2));
-  $("#dis_row_"+item_id).val(total_discount);
-
-  var total_profit    = parseFloat(item_qty * profit_hide);
-  $("#profit_row_"+item_id).val(total_profit);
-  // shahajahan 03-12-2024
-
-
-  //var gst_amt=(tot_sales_price * gst_per)/100;
-  var tot_sales_price = parseFloat(item_qty)*parseFloat(sales_price);
-  var subtotal        = parseFloat(tot_sales_price);
-
-  final_sales_price = (parseFloat(dis_ahide) + parseFloat(total_discount) + parseFloat(subtotal)).toFixed(2);
-  // console.log(final_sales_price);
-
-  if (parseFloat(final_sales_price) > parseFloat(tot_mrp_price)) {
-    $("#item_adis_"+item_id).val(0);
-    return false;
-  } else {
-    $("#td_"+rowcount+"_4").html(parseFloat(subtotal).toFixed(2));
   }
-  final_total();
-}
 
-function calulate_discount(discount_input, discount_type, total){
-  if(discount_type == 'in_percentage'){
-    return parseFloat((total*discount_input)/100);
-  }else{//in_fixed
-    return parseFloat(discount_input);
-  }
-}
-//LEFT SIDE: FINAL TOTAL
-function final_total(){
-  var total=0;
-  var item_qty=0;
-  var total_tax=0;
-  var rowcount=$("#hidden_rowcount").val();
-  var discount_input=$("#discount_input").val();
-  var discount_type=$("#discount_type").val();
-  var tot_profit = 0;
-  var dis_row = 0;
-
-  if($(".items_table tr").length > 1){
-    for(i=0;i<rowcount;i++){
-      if(document.getElementById('tr_item_id_'+i)){
-        total = parseFloat(total)+ + +parseFloat($("#td_"+i+"_4").html()).toFixed(2);
-        item_id = $("#tr_item_id_"+i).val();
-        item_qty = parseFloat(item_qty)+ + +parseFloat($("#item_qty_"+item_id).val()).toFixed(2);
-        item_tem_qty = parseFloat($("#item_qty_"+item_id).val()).toFixed(2);
-        total_tax += (parseFloat($("#item_tax_"+item_id).val()).toFixed(2))*item_tem_qty;
-        tot_profit += (parseFloat($("#profit_row_"+item_id).val()));
-        dis_row += (parseFloat($("#dis_row_"+item_id).val()));
-      }
-    }//for end
-  }//items_table
-
-  total = parseFloat(total).toFixed(2);
-  var discount_amt = calulate_discount(discount_input, discount_type, total);//return value
-  // console.log(discount_amt + " " + discount_input + " " + discount_type + " " + total);
-  set_total(item_qty, total, discount_amt, total-discount_amt, total_tax, tot_profit, dis_row);
-}
-
-function set_total(tot_qty=0, tot_amt=0, tot_disc=0, tot_grand=0, tot_tax = 0, tot_profit = 0, dis_row = 0){
-  $(".tot_qty   ").html(tot_qty);
-  $(".tot_amt   ").html((Math.round(tot_amt).toFixed(2)));
-  $(".tot_disc  ").html((Math.round(tot_disc).toFixed(2)));
-  $(".tot_tax  ").html((Math.round(tot_tax).toFixed(2)));
-  $(".tot_grand ").html((Math.round(parseFloat(tot_grand)+parseFloat(tot_tax))).toFixed(2));
-  $("#tot_profit  ").val((Math.round(tot_profit).toFixed(2)));
-  $("#item_tot_dis  ").val((Math.round(dis_row).toFixed(2)));
-}
-
-//LEFT SIDE: FINAL TOTAL
-function adjust_payments(){
-  var total=0;
-  var item_qty=0;
-  var total_tax=0;
-  var rowcount=$("#hidden_rowcount").val();
-  var discount_input=$("#discount_input").val();
-  var discount_type=$("#discount_type").val();
-  var tot_profit = 0;
-  var dis_row = 0;
-  //var discount_amt = parseFloat($(".tot_disc").html());
-
-  if($(".items_table tr").length>1){
-    for(i=0;i<rowcount;i++){
-      if(document.getElementById('tr_item_id_'+i)){
-        total=parseFloat(total)+ + +parseFloat($("#td_"+i+"_4").html()).toFixed(2);
-        item_id=$("#tr_item_id_"+i).val();
-        item_qty=parseFloat(item_qty)+ + +parseFloat($("#item_qty_"+item_id).val()).toFixed(2);
-        item_tem_qty = parseFloat($("#item_qty_"+item_id).val()).toFixed(2)
-        total_tax+=(parseFloat($("#item_tax_"+item_id).val()).toFixed(2))*item_tem_qty;
-        tot_profit += (parseFloat($("#profit_row_"+item_id).val()));
-        dis_row += (parseFloat($("#dis_row_"+item_id).val()));
-      }
-    }//for end
-  }//items_table
-  tem_amt = parseFloat(total).toFixed(2);
-  total = parseFloat(total).toFixed(2);
-  total = (parseFloat(total) + parseFloat(total_tax)).toFixed(2);
-  //Find customers payment
-
-  var payments_row = get_id_value("payment_row_count");
-  // console.log(payments_row);
-
-  var paid_amount = 0;
-  for (var i = 1; i <= payments_row; i++) {
-    if(document.getElementById("amount_"+i)){
-      paid_amount = parseFloat(paid_amount)+parseFloat((get_id_value("amount_"+i)=='')? 0 : get_id_value("amount_"+i));
-      //console.log((get_id_value("amount_"+i)=='')? 0 : get_id_value("amount_"+i));
+  function calulate_discount(discount_input, discount_type, total){
+    if(discount_type == 'in_percentage'){
+      return parseFloat((total*discount_input)/100);
+    }else{//in_fixed
+      return parseFloat(discount_input);
     }
   }
-
-  //RIGHT SIDE DIV
-  var discount_amt = calulate_discount(discount_input, discount_type, tem_amt);//return value
-  // console.log(discount_amt + " " + discount_input + " " + discount_type + " " + total);
-
-  var change_return = 0;
-  var balance = total - discount_amt - paid_amount;
-  if(balance < 0){
-    change_return = Math.abs(parseFloat(balance));
-    // balance = 0;
-  }
-  // console.log(balance + " " + total + " " + discount_amt + " " + paid_amount + " " + change_return);
-
-
-  balance = parseFloat(balance).toFixed(2);
-  $(".sales_div_tot_qty  ").html(item_qty);
-  $(".sales_div_tot_amt  ").html(parseFloat(total).toFixed(2));
-  $(".sales_div_tot_discount ").html(parseFloat(discount_amt).toFixed(2));
-  $(".sales_div_tot_payble ").html(parseFloat(total-discount_amt).toFixed(2));
-  $(".sales_div_tot_paid ").html(parseFloat(paid_amount).toFixed(2));
-  $(".sales_div_tot_balance ").html(balance);
-
-  /**/
-  $(".sales_div_change_return ").html((change_return).toFixed(2));
-}
-
-function check_same_item(item_id){
-
-  if($(".items_table tr").length>1){
+  //LEFT SIDE: FINAL TOTAL
+  function final_total(){
+    var total=0;
+    var item_qty=0;
+    var total_tax=0;
     var rowcount=$("#hidden_rowcount").val();
-    for(i=0;i<=rowcount;i++){
-            if($("#tr_item_id_"+i).val()==item_id){
-              increment_qty(item_id,i);
-              failed.currentTime = 0;
-              failed.play();
-              return false;
-            }
-      }//end for
+    var discount_input=$("#discount_input").val();
+    var discount_type=$("#discount_type").val();
+    var tot_profit = 0;
+    var dis_row = 0;
+
+    if($(".items_table tr").length > 1){
+      for(i=0;i<rowcount;i++){
+        if(document.getElementById('tr_item_id_'+i)){
+          total = parseFloat(total)+ + +parseFloat($("#td_"+i+"_4").html()).toFixed(2);
+          item_id = $("#tr_item_id_"+i).val();
+          item_qty = parseFloat(item_qty)+ + +parseFloat($("#item_qty_"+item_id).val()).toFixed(2);
+          item_tem_qty = parseFloat($("#item_qty_"+item_id).val()).toFixed(2);
+          total_tax += (parseFloat($("#item_tax_"+item_id).val()).toFixed(2))*item_tem_qty;
+          tot_profit += (parseFloat($("#profit_row_"+item_id).val()));
+          dis_row += (parseFloat($("#dis_row_"+item_id).val()));
+        }
+      }//for end
+    }//items_table
+
+    total = parseFloat(total).toFixed(2);
+    var discount_amt = calulate_discount(discount_input, discount_type, total);//return value
+    // console.log(discount_amt + " " + discount_input + " " + total);
+    set_total(item_qty, total, discount_amt, total-discount_amt, total_tax, tot_profit, dis_row);
   }
-  return true;
-}
 
-$(document).ready(function(){
-  //FIRST TIME: LOAD
-  get_details();
+  function set_total(tot_qty=0, tot_amt=0, tot_disc=0, tot_grand=0, tot_tax = 0, tot_profit = 0, dis_row = 0){
+    console.log(tot_amt + "  " + Math.round(tot_amt).toFixed(2));
 
-  //FIRST TIME: SET TOTAL ZERO
-  set_total();
+    $(".tot_qty   ").html(tot_qty);
+    $(".tot_amt   ").html(parseFloat(tot_amt).toFixed(2));
+    $(".tot_disc  ").html(parseFloat(tot_disc).toFixed(2));
+    $(".tot_tax  ").html(parseFloat(tot_tax).toFixed(2));
+    $(".tot_grand ").html((parseFloat(tot_grand) + parseFloat(tot_tax)).toFixed(2));
+    $("#tot_profit  ").val(parseFloat(tot_profit).toFixed(2));
+    $("#item_tot_dis  ").val(parseFloat(dis_row).toFixed(2));
+  }
 
-  //RIGHT DIV: FILTER INPUT BOX
-  $("#search_it").on("keyup",function(){
-    search_it();
-  });
+  //LEFT SIDE: FINAL TOTAL
+  function adjust_payments(){
+    var total=0;
+    var item_qty=0;
+    var total_tax=0;
+    var rowcount=$("#hidden_rowcount").val();
+    var discount_input=$("#discount_input").val();
+    var discount_type=$("#discount_type").val();
+    var tot_profit = 0;
+    var dis_row = 0;
+    //var discount_amt = parseFloat($(".tot_disc").html());
 
-  //CATEGORY WISE ITEM FETCH FROM SERVER
-  $("#category_id").change(function () {
-      get_details();
-  });
+    if($(".items_table tr").length>1){
+      for(i=0;i<rowcount;i++){
+        if(document.getElementById('tr_item_id_'+i)){
+          total=parseFloat(total)+ + +parseFloat($("#td_"+i+"_4").html()).toFixed(2);
+          item_id=$("#tr_item_id_"+i).val();
+          item_qty=parseFloat(item_qty)+ + +parseFloat($("#item_qty_"+item_id).val()).toFixed(2);
+          item_tem_qty = parseFloat($("#item_qty_"+item_id).val()).toFixed(2)
+          total_tax+=(parseFloat($("#item_tax_"+item_id).val()).toFixed(2))*item_tem_qty;
+          tot_profit += (parseFloat($("#profit_row_"+item_id).val()));
+          dis_row += (parseFloat($("#dis_row_"+item_id).val()));
+        }
+      }//for end
+    }//items_table
+    tem_amt = parseFloat(total).toFixed(2);
+    total = parseFloat(total).toFixed(2);
+    total = (parseFloat(total) + parseFloat(total_tax)).toFixed(2);
+    //Find customers payment
 
-  //DISCOUNT UPDATE
-  $(".discount_update").click(function () {
-      final_total();
-      $('#discount-modal').modal('toggle');
-  });
+    var payments_row = get_id_value("payment_row_count");
+    // console.log(payments_row);
 
-  //RIGHT SIDE: CLEAR SEARCH BOX
-  $(".show_all").click(function(){
-    $("#search_it").val('').trigger("keyup");
-    $("#category_id").val('').trigger("change");
-  });
-  //UPDATE PROCESS START
- <?php if(isset($sales_id) && !empty($sales_id)){ ?>
-
-    $(".box").append('<div class="overlay"><i class="fa fa-refresh fa-spin"></i></div>');
-    $.get("<?php echo $base_url ?>pos/fetch_sales/<?php echo $sales_id ?>",{},function(result){
-      //console.log(result);
-      result=result.split("<<<###>>>");
-      $('#pos-form-tbody').append(result[0]);
-      $('#discount_input').val(result[1]);
-      $('#discount_type').val(result[2]);
-      $('#customer_id').val(result[3]).select2();
-      $('#temp_customer_id').val(result[3]);
-      $("#hidden_rowcount").val(parseInt($(".items_table tr").length)-1);
-      final_total();
-      $(".overlay").remove();
-      $("#customer_id").trigger("change");
-      if(result[5]==1){
-        $( "#binvoice" ).prop( "checked", true );
-        $('#binvoice').parent('div').addClass('checked');
+    var paid_amount = 0;
+    for (var i = 1; i <= payments_row; i++) {
+      if(document.getElementById("amount_"+i)){
+        paid_amount = parseFloat(paid_amount)+parseFloat((get_id_value("amount_"+i)=='')? 0 : get_id_value("amount_"+i));
+        //console.log((get_id_value("amount_"+i)=='')? 0 : get_id_value("amount_"+i));
       }
+    }
+
+    //RIGHT SIDE DIV
+    var discount_amt = calulate_discount(discount_input, discount_type, tem_amt);//return value
+    // console.log(discount_amt + " " + discount_input + " " + discount_type + " " + total);
+
+    var change_return = 0;
+    var balance = total - discount_amt - paid_amount;
+    if(balance < 0){
+      change_return = Math.abs(parseFloat(balance));
+      // balance = 0;
+    }
+    // console.log(balance + " " + total + " " + discount_amt + " " + paid_amount + " " + change_return);
+
+
+    balance = parseFloat(balance).toFixed(2);
+    $(".sales_div_tot_qty  ").html(item_qty);
+    $(".sales_div_tot_amt  ").html(parseFloat(total).toFixed(2));
+    $(".sales_div_tot_discount ").html(parseFloat(discount_amt).toFixed(2));
+    $(".sales_div_tot_payble ").html(parseFloat(total-discount_amt).toFixed(2));
+    $(".sales_div_tot_paid ").html(parseFloat(paid_amount).toFixed(2));
+    $(".sales_div_tot_balance ").html(balance);
+
+    /**/
+    $(".sales_div_change_return ").html((change_return).toFixed(2));
+  }
+
+  function check_same_item(item_id){
+
+    if($(".items_table tr").length>1){
+      var rowcount=$("#hidden_rowcount").val();
+      for(i=0;i<=rowcount;i++){
+              if($("#tr_item_id_"+i).val()==item_id){
+                increment_qty(item_id,i);
+                failed.currentTime = 0;
+                failed.play();
+                return false;
+              }
+        }//end for
+    }
+    return true;
+  }
+
+  $(document).ready(function(){
+    //FIRST TIME: LOAD
+    get_details();
+
+    //FIRST TIME: SET TOTAL ZERO
+    set_total();
+
+    //RIGHT DIV: FILTER INPUT BOX
+    $("#search_it").on("keyup",function(){
+      search_it();
     });
+
+    //CATEGORY WISE ITEM FETCH FROM SERVER
+    $("#category_id").change(function () {
+        get_details();
+    });
+
+    //DISCOUNT UPDATE
+    $(".discount_update").click(function () {
+        final_total();
+        $('#discount-modal').modal('toggle');
+    });
+
+    //RIGHT SIDE: CLEAR SEARCH BOX
+    $(".show_all").click(function(){
+      $("#search_it").val('').trigger("keyup");
+      $("#category_id").val('').trigger("change");
+    });
+    //UPDATE PROCESS START
+    <?php if(isset($sales_id) && !empty($sales_id)){ ?>
+      $(".box").append('<div class="overlay"><i class="fa fa-refresh fa-spin"></i></div>');
+      $.get("<?php echo $base_url ?>pos/fetch_sales/<?php echo $sales_id ?>",{},function(result){
+        //console.log(result);
+        result=result.split("<<<###>>>");
+        $('#pos-form-tbody').append(result[0]);
+        $('#discount_input').val(result[1]);
+        $('#discount_type').val(result[2]);
+        $('#customer_id').val(result[3]).select2();
+        $('#temp_customer_id').val(result[3]);
+        $("#hidden_rowcount").val(parseInt($(".items_table tr").length)-1);
+        final_total();
+        $(".overlay").remove();
+        $("#customer_id").trigger("change");
+        if(result[5]==1){
+          $( "#binvoice" ).prop( "checked", true );
+          $('#binvoice').parent('div').addClass('checked');
+        }
+      });
       //DISABLE THE HOLD BUTTON
       $("#hold_invoice,#show_cash_modal").attr('disabled',true).removeAttr('id');
+    <?php } ?>
+    //UPDATE PROCESS END
+  });//ready() end
 
- <?php } ?>
-  //UPDATE PROCESS END
-
-
-});//ready() end
-
-
-
-
-/* DROP DOWN */
-<?php
-        $json_array=array();
-        $query1="select id,item_name,stock,item_code from db_items where (upper(item_name) like upper('%%') or upper(item_code) like upper('%%')) and status=1";
-        //echo $query1;
-        $q1=$this->db->query($query1);
-        if($q1->num_rows()>0){
-            foreach ($q1->result() as $value) {
-                $details=$value->item_code."--".$value->item_name." (".$value->stock.")";
-                $json_array[]=["id"=>(int)$value->id, "name"=>$details, "stock" => (int)$value->stock];
-                //$json_array[]=$value->item_name;
-            }
+  /* DROP DOWN */
+  <?php
+    $json_array=array();
+    $query1="select id,item_name,stock,item_code from db_items where (upper(item_name) like upper('%%') or upper(item_code) like upper('%%')) and status=1";
+    //echo $query1;
+    $q1=$this->db->query($query1);
+    if($q1->num_rows()>0){
+        foreach ($q1->result() as $value) {
+            $details=$value->item_code."--".$value->item_name." (".$value->stock.")";
+            $json_array[]=["id"=>(int)$value->id, "name"=>$details, "stock" => (int)$value->stock];
+            //$json_array[]=$value->item_name;
         }
-        $json_array= json_encode($json_array);
-?>
-$(document).ready(function() {
-  $('#item_search').focus();
-  $('#item_search').typeahead({
-
-    source:<?php echo $json_array; ?>,
-    scroll: true,
-    items: 10,
-    limit: 10,
-    //showHintOnFocus: 10,
-    autoSelect: true,
-    updater: function (item) {
-      return item;
-    // console.log(this.map[item].id);
-    },
-    afterSelect: function (item) {
-
-      if(item.stock==0){
-        toastr["error"]("Out of Stock!");
-        $("#item_search").val('');
-        return;
-      }
-      if(item.stock < 0){
-        toastr["error"]("Out of Stock!");
-        $("#item_search").val('');
-        return;
-      }
-      addrow(item.id);
-      $("#item_search").val('');
-
     }
-  });
-  // hold_invoice_list();
-});
-
-
-//DATEPICKER INITIALIZATION
-$('#order_date,#delivery_date,#cheque_date').datepicker({
-      autoclose: true,
-      format: 'dd-mm-yyyy',
-      todayHighlight: true
+    $json_array= json_encode($json_array);
+  ?>
+  $(document).ready(function() {
+    $('#item_search').focus();
+    $('#item_search').typeahead({
+      source:<?php echo $json_array; ?>,
+      scroll: true,
+      items: 10,
+      limit: 10,
+      //showHintOnFocus: 10,
+      autoSelect: true,
+      updater: function (item) {
+        return item;
+        // console.log(this.map[item].id);
+      },
+      afterSelect: function (item) {
+        if(item.stock==0){
+          toastr["error"]("Out of Stock!");
+          $("#item_search").val('');
+          return;
+        }
+        if(item.stock < 0){
+          toastr["error"]("Out of Stock!");
+          $("#item_search").val('');
+          return;
+        }
+        addrow(item.id);
+        $("#item_search").val('');
+      }
     });
-    $('#customer_dob,#birthday_person_dob').datepicker({
-      calendarWeeks: true,
-      todayHighlight: true,
-      autoclose: true,
-      format: 'dd-mm-yyyy',
-      startView: 2
+    // hold_invoice_list();
+  });
+
+  //DATEPICKER INITIALIZATION
+  $('#order_date,#delivery_date,#cheque_date').datepicker({
+    autoclose: true,
+    format: 'dd-mm-yyyy',
+    todayHighlight: true
+  });
+  $('#customer_dob,#birthday_person_dob').datepicker({
+    calendarWeeks: true,
+    todayHighlight: true,
+    autoclose: true,
+    format: 'dd-mm-yyyy',
+    startView: 2
+  });
+</script>
+
+  <script>
+    $(function () {
+      $('input').iCheck({
+        checkboxClass: 'icheckbox_square-blue',
+        radioClass: 'iradio_square-blue',
+        increaseArea: '20%' // optional
+      });
     });
-
-    //Datemask dd-mm-yyyy
-    //$("#customer_dob,#birthday_person_dob").inputmask("dd-mm-yyyy", {"placeholder": "dd-mm-yyyy"});
-
-    //Timepicker
-    /*$('.timepicker').timepicker({
-      showInputs: false,
-    });*/
-
-
-</script>
-<script>
-  $(function () {
-    $('input').iCheck({
-      checkboxClass: 'icheckbox_square-blue',
-      radioClass: 'iradio_square-blue',
-      increaseArea: '20%' // optional
+  </script>
+  <script type="text/javascript">
+    Mousetrap.bind('ctrl+m', function(e) {
+      e.preventDefault();
+      $('#amount_1').val('').trigger('change');
+      $(".show_payments_modal").trigger('click');
     });
-  });
-</script>
-<script type="text/javascript">
-  Mousetrap.bind('ctrl+m', function(e) {
-    e.preventDefault();
-    $('#amount_1').val('').trigger('change');
-    $(".show_payments_modal").trigger('click');
-  });
-  Mousetrap.bind('ctrl+h', function(e) {
-    e.preventDefault();
-    $("#hold_invoice").trigger('click');
-  });
-  Mousetrap.bind('ctrl+c', function(e) {
-    e.preventDefault();
-    $(".ctrl_c").trigger('click');
-  });
-</script>
-<script type="text/javascript">
+    Mousetrap.bind('ctrl+h', function(e) {
+      e.preventDefault();
+      $("#hold_invoice").trigger('click');
+    });
+    Mousetrap.bind('ctrl+c', function(e) {
+      e.preventDefault();
+      $(".ctrl_c").trigger('click');
+    });
+  </script>
+  <script type="text/javascript">
 
-</script>
+  </script>
 </body>
 </html>

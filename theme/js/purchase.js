@@ -5,7 +5,7 @@ function shift_cursor(kevent,target){
     if(kevent.keyCode==13){
 		$("#"+target).focus();
     }
-	
+
 }
 
 
@@ -48,15 +48,15 @@ $('#save,#update').click(function (e) {
 		return;
 	}
 
-	//Atleast one record must be added in purchase table 
+	//Atleast one record must be added in purchase table
     var rowcount=document.getElementById("hidden_rowcount").value;
 	var flag1=false;
 	for(var n=1;n<=rowcount;n++){
 		if($("#td_data_"+n+"_1").val()!=null && $("#td_data_"+n+"_1").val()!=''){
 			flag1=true;
-		}	
+		}
 	}
-	
+
     if(flag1==false){
     	toastr["warning"]("Please Select Item!!");
         $("#item_search").focus();
@@ -71,13 +71,13 @@ $('#save,#update').click(function (e) {
     var tot_total_amt=$("#total_amt").text();
 
     var this_id=this.id;
-    
+
 			if(confirm("Do You Wants to Save Record ?")){
 				e.preventDefault();
 				data = new FormData($('#purchase-form')[0]);//form name
         /*Check XSS Code*/
         if(!xss_validation(data)){ return false; }
-        
+
         $(".box").append('<div class="overlay"><i class="fa fa-refresh fa-spin"></i></div>');
         $("#"+this_id).attr('disabled',true);  //Enable Save or Update button
 				$.ajax({
@@ -108,7 +108,7 @@ $('#save,#update').click(function (e) {
 			   }
 			   });
 		}
-  
+
 });
 
 
@@ -120,10 +120,10 @@ $("#item_search").autocomplete({
             method: 'GET',
             dataType: 'json',
             /*showHintOnFocus: true,
-			autoSelect: true, 
-			
+			autoSelect: true,
+
 			selectInitial :true,*/
-			
+
             data: {
                 name: data.term
             },
@@ -159,8 +159,8 @@ $("#item_search").autocomplete({
         //loader start
         search: function (e, u) {
         },
-        select: function (e, u) { 
-        	
+        select: function (e, u) {
+
             //$("#mobile").val(u.item.mobile)
             //$("#item_search").val(u.item.value);
             //$("#customer_dob").val(u.item.customer_dob)
@@ -168,7 +168,7 @@ $("#item_search").autocomplete({
             //alert("id="+u.item.id);
             var item_id =u.item.id;
             return_row_with_data(item_id);
-        },   
+        },
         //loader end
 });
 
@@ -184,7 +184,7 @@ function return_row_with_data(item_id){
         success.play();
         enable_or_disable_item_discount();
         $("#item_search").removeClass('ui-autocomplete-loader-center');
-    }); 
+    });
 }
 //INCREMENT ITEM
 function increment_qty(rowcount){
@@ -194,8 +194,6 @@ function increment_qty(rowcount){
     item_qty=parseFloat(item_qty)+1;
     $("#td_data_"+rowcount+"_3").val(item_qty);
   //}
-  console.log(item_qty);
-  console.log(available_qty);
   calculate_tax(rowcount);
 }
 //DECREMENT ITEM
@@ -211,8 +209,8 @@ function decrement_qty(rowcount){
 
 //CALCUALATED SALES PRICE
 function calculate_sales_price(rowcount){
-  var purchase_price = (isNaN(parseFloat($("#td_data_"+rowcount+"_10").val().trim()))) ? 0 :parseFloat($("#td_data_"+rowcount+"_10").val().trim()); 
-  var profit_margin = (isNaN(parseFloat($("#td_data_"+rowcount+"_12").val().trim()))) ? 0 :parseFloat($("#td_data_"+rowcount+"_12").val().trim()); 
+  var purchase_price = (isNaN(parseFloat($("#td_data_"+rowcount+"_10").val().trim()))) ? 0 :parseFloat($("#td_data_"+rowcount+"_10").val().trim());
+  var profit_margin = (isNaN(parseFloat($("#td_data_"+rowcount+"_12").val().trim()))) ? 0 :parseFloat($("#td_data_"+rowcount+"_12").val().trim());
   var tax_type = $("#tax_type").val();
   var sales_price =parseFloat(0);
     sales_price = purchase_price + ((purchase_price*profit_margin)/parseFloat(100));
@@ -221,8 +219,8 @@ function calculate_sales_price(rowcount){
 //END
 //CALCULATE PROFIT MARGIN PERCENTAGE
 function calculate_profit_margin(rowcount){
-  var purchase_price = (isNaN(parseFloat($("#td_data_"+rowcount+"_10").val().trim()))) ? 0 :parseFloat($("#td_data_"+rowcount+"_10").val().trim()); 
-  var sales_price = (isNaN(parseFloat($("#td_data_"+rowcount+"_13").val().trim()))) ? 0 :parseFloat($("#td_data_"+rowcount+"_13").val().trim());  
+  var purchase_price = (isNaN(parseFloat($("#td_data_"+rowcount+"_10").val().trim()))) ? 0 :parseFloat($("#td_data_"+rowcount+"_10").val().trim());
+  var sales_price = (isNaN(parseFloat($("#td_data_"+rowcount+"_13").val().trim()))) ? 0 :parseFloat($("#td_data_"+rowcount+"_13").val().trim());
   var profit_margin = (sales_price-purchase_price);
   var profit_margin = (profit_margin/purchase_price)*parseFloat(100);
   $("#td_data_"+rowcount+"_12").val(profit_margin.toFixed(2));
@@ -250,29 +248,29 @@ function delete_payment(payment_id){
         {
           toastr["success"]("Record Deleted Successfully!");
           $("#payment_row_"+payment_id).remove();
-          success.currentTime = 0; 
+          success.currentTime = 0;
           success.play();
         }
         else if(result=="failed"){
           toastr["error"]("Failed to Delete .Try again!");
-          failed.currentTime = 0; 
+          failed.currentTime = 0;
           failed.play();
         }
         else{
           toastr["error"](result);
-          failed.currentTime = 0; 
+          failed.currentTime = 0;
           failed.play();
         }
         $(".overlay").remove();
         update_paid_payment_total();
    });
-   }//end confirmation   
+   }//end confirmation
   }
 
   //Delete Record start
 function delete_purchase(q_id)
 {
-  
+
    if(confirm("Do You Wants to Delete Record ?")){
     $(".box").append('<div class="overlay"><i class="fa fa-refresh fa-spin"></i></div>');
     $.post("purchase/delete_purchase",{q_id:q_id},function(result){
@@ -297,12 +295,12 @@ function delete_purchase(q_id)
 function multi_delete(){
   //var base_url=$("#base_url").val().trim();
     var this_id=this.id;
-    
+
     if(confirm("Are you sure ?")){
       data = new FormData($('#table_form')[0]);//form name
       /*Check XSS Code*/
       if(!xss_validation(data)){ return false; }
-      
+
       $(".box").append('<div class="overlay"><i class="fa fa-refresh fa-spin"></i></div>');
       $("#"+this_id).attr('disabled',true);  //Enable Save or Update button
       $.ajax({
@@ -318,7 +316,7 @@ function multi_delete(){
         if(result=="success")
         {
           toastr["success"]("Record Deleted Successfully!");
-          success.currentTime = 0; 
+          success.currentTime = 0;
             success.play();
           $('#example2').DataTable().ajax.reload();
           $(".delete_btn").hide();
@@ -327,13 +325,13 @@ function multi_delete(){
         else if(result=="failed")
         {
            toastr["error"]("Sorry! Failed to save Record.Try again!");
-           failed.currentTime = 0; 
+           failed.currentTime = 0;
            failed.play();
         }
         else
         {
           toastr["error"](result);
-          failed.currentTime = 0; 
+          failed.currentTime = 0;
             failed.play();
         }
         $("#"+this_id).attr('disabled',false);  //Enable Save or Update button
@@ -400,7 +398,7 @@ function save_payment(purchase_id){
 
     if(amount == 0){
       toastr["error"]("Please Enter Valid Amount!");
-      return false; 
+      return false;
     }
 
     if(amount > parseFloat($("#due_amount_temp").html().trim())){
@@ -417,20 +415,20 @@ function save_payment(purchase_id){
         {
           $('#pay_now').modal('toggle');
           toastr["success"]("Payment Recorded Successfully!");
-          success.currentTime = 0; 
+          success.currentTime = 0;
           success.play();
           $('#example2').DataTable().ajax.reload();
         }
         else if(result=="failed")
         {
            toastr["error"]("Sorry! Failed to save Record.Try again!");
-           failed.currentTime = 0; 
+           failed.currentTime = 0;
            failed.play();
         }
         else
         {
           toastr["error"](result);
-          failed.currentTime = 0; 
+          failed.currentTime = 0;
           failed.play();
         }
         $(".payment_save").attr('disabled',false);  //Enable Save or Update button
@@ -449,21 +447,21 @@ function delete_purchase_payment(payment_id){
         {
           $('#view_payments_modal').modal('toggle');
           toastr["success"]("Record Deleted Successfully!");
-          success.currentTime = 0; 
+          success.currentTime = 0;
           success.play();
           $('#example2').DataTable().ajax.reload();
         }
         else if(result=="failed"){
           toastr["error"]("Failed to Delete .Try again!");
-          failed.currentTime = 0; 
+          failed.currentTime = 0;
           failed.play();
         }
         else{
           toastr["error"](result);
-          failed.currentTime = 0; 
+          failed.currentTime = 0;
           failed.play();
         }
         $(".overlay").remove();
    });
-   }//end confirmation   
+   }//end confirmation
   }
